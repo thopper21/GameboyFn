@@ -2,6 +2,7 @@ module CPU where
 
     import Data.Word (Word8, Word16)
     import Data.Bool (Bool)
+    import Data.IntMap (IntMap)
 
     data Registers = Registers {
         a :: Word8,
@@ -15,3 +16,7 @@ module CPU where
         pc :: Word16,
         sp :: Word16
     } deriving (Show)
+
+    newtype Memory = IntMap Word8
+
+    data CPU = CPU { registers :: Registers, memory :: Memory }

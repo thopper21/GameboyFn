@@ -20,6 +20,7 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/thopper21/GameboyFn#readme>
 
 dependencies:
+- containers
 - base >= 4.7 && < 5
 
 library:
