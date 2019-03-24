@@ -21,8 +21,11 @@ module CPU where
 
     data CPU = CPU { registers :: Registers, memory :: Memory }
 
+    pack :: Word8 -> Word8 -> Word16
+    pack hi lo = fromIntegral hi * 256 + fromIntegral lo
+
     toWord16 :: (Registers -> Word8) -> (Registers -> Word8) -> Registers -> Word16
-    toWord16 hi lo registers = fromIntegral (hi registers) * 256 + fromIntegral (lo registers)
+    toWord16 hi lo registers = pack (hi registers) (lo registers) 
 
     af :: Registers -> Word16
     af = toWord16 a f
