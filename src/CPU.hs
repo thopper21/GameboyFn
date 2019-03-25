@@ -5,6 +5,9 @@ module CPU where
     import Data.IntMap (IntMap)
     import Data.Word (Word8, Word16)
 
+    data Register8 = A | B | C | D | E | H | L | F
+    data Register16 = AF | BC | DE | HL | PC | SP
+
     data Registers = Registers {
         a :: Word8,
         b :: Word8,
@@ -58,3 +61,45 @@ module CPU where
     setHL :: Registers -> Word16 -> Registers
     setHL registers val = let (hi, lo) = unpack val
         in registers { h = hi, l = lo }
+
+    setPC :: Registers -> Word16 -> Registers
+    setPC registers val = registers { pc = val }
+
+    setSP :: Registers -> Word16 -> Registers
+    setSP registers val = registers { sp = val }
+
+    getRegister8 :: Register8 -> Registers -> Word8
+    getRegister8 A = a
+    getRegister8 B = b
+    getRegister8 C = c
+    getRegister8 D = d
+    getRegister8 E = e
+    getRegister8 H = h
+    getRegister8 L = l
+    getRegister8 F = f
+
+    getRegister16 :: Register16 -> Registers -> Word16
+    getRegister16 AF = af
+    getRegister16 BC = bc
+    getRegister16 DE = de
+    getRegister16 HL = hl
+    getRegister16 PC = pc
+    getRegister16 SP = sp
+
+    setRegister8 :: Register8 -> Word8 -> Registers -> Registers
+    setRegister8 A val registers = registers { a = val }
+    setRegister8 B val registers = registers { b = val }
+    setRegister8 C val registers = registers { c = val }
+    setRegister8 D val registers = registers { d = val }
+    setRegister8 E val registers = registers { e = val }
+    setRegister8 H val registers = registers { h = val }
+    setRegister8 L val registers = registers { l = val }
+    setRegister8 F val registers = registers { f = val }
+
+    setRegister16 :: Register16 -> Word16 -> Registers -> Registers
+    setRegister16 AF = flip setAF
+    setRegister16 BC = flip setBC
+    setRegister16 DE = flip setDE
+    setRegister16 HL = flip setHL
+    setRegister16 PC = flip setPC
+    setRegister16 SP = flip setSP

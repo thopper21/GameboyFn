@@ -1,7 +1,8 @@
 module RegisterSpec where
 
-    import Test.Hspec
     import CPU
+    import Data.Word (Word8, Word16)
+    import Test.Hspec
 
     defaultRegister = Registers {
         a = 0,
@@ -16,32 +17,36 @@ module RegisterSpec where
         sp = 0
     }
 
+    specPack :: Register8 -> Register8 -> Register16 -> Word16
+    specPack hi lo out = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegister
+
+    specUnpack :: Register16 -> Register8 -> Register8 -> (Word8, Word8)
+    specUnpack input hi lo = 
+        let registers = setRegister16 input 32896 defaultRegister
+        in (getRegister8 hi registers, getRegister8 lo registers)
+
     spec :: Spec
     spec = describe "register" $ do
         it "Packs A and F into AF" $
-            af (defaultRegister { a = 128, f = 128 }) `shouldBe` 32896
+            specPack A F AF `shouldBe` 32832
         
         it "Packs B and C into BC" $
-            bc (defaultRegister { b = 128, c = 128 }) `shouldBe` 32896
+            specPack B C BC `shouldBe` 32832
             
         it "Packs D and E into DE" $
-            de (defaultRegister { d = 128, e = 128 }) `shouldBe` 32896
+            specPack D E DE `shouldBe` 32832
 
         it "Packs H and L into HL" $
-            hl (defaultRegister { h = 128, l = 128 }) `shouldBe` 32896
+            specPack H L HL `shouldBe` 32832
 
         it "Unpacks AF into A and F" $
-            let registers = setAF defaultRegister 32896
-            in (a registers, f registers) `shouldBe` (128, 128)
+            specUnpack AF A F `shouldBe` (128, 128)
         
         it "Unpacks BC into B and C" $
-            let registers = setBC defaultRegister 32896
-            in (b registers, c registers) `shouldBe` (128, 128)
+            specUnpack BC B C `shouldBe` (128, 128)
             
         it "Unpacks DE into D and E" $
-            let registers = setDE defaultRegister 32896
-            in (d registers, e registers) `shouldBe` (128, 128)
+            specUnpack DE D E `shouldBe` (128, 128)
 
         it "Unpacks HL into H and L" $
-            let registers = setHL defaultRegister 32896
-            in (h registers, l registers) `shouldBe` (128, 128)
+            specUnpack HL H L `shouldBe` (128, 128)
