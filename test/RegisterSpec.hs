@@ -4,7 +4,7 @@ module RegisterSpec where
     import Data.Word (Word8, Word16)
     import Test.Hspec
 
-    defaultRegister = Registers {
+    defaultRegisters = Registers {
         a = 0,
         b = 0,
         c = 0,
@@ -18,11 +18,11 @@ module RegisterSpec where
     }
 
     specPack :: Register8 -> Register8 -> Register16 -> Word16
-    specPack hi lo out = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegister
+    specPack hi lo out = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegisters
 
     specUnpack :: Register16 -> Register8 -> Register8 -> (Word8, Word8)
     specUnpack input hi lo = 
-        let registers = setRegister16 input 32896 defaultRegister
+        let registers = setRegister16 input 32896 defaultRegisters
         in (getRegister8 hi registers, getRegister8 lo registers)
 
     spec :: Spec
