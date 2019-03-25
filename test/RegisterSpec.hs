@@ -19,10 +19,10 @@ module RegisterSpec where
 
     specPack hi lo out =
         let val = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegisters
-        in val `shouldBe` 32832
+        in val `shouldBe` (128 * 256 + 64)
 
     specUnpack input hi lo = 
-        let registers = setRegister16 input 32896 defaultRegisters
+        let registers = setRegister16 input (128 * 256 + 128) defaultRegisters
         in (getRegister8 hi registers, getRegister8 lo registers) `shouldBe` (128, 128)
 
     spec :: Spec
