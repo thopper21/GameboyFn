@@ -17,36 +17,36 @@ module RegisterSpec where
         sp = 0
     }
 
-    specPack :: Register8 -> Register8 -> Register16 -> Word16
-    specPack hi lo out = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegisters
+    specPack hi lo out =
+        let val = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegisters
+        in val `shouldBe` 32832
 
-    specUnpack :: Register16 -> Register8 -> Register8 -> (Word8, Word8)
     specUnpack input hi lo = 
         let registers = setRegister16 input 32896 defaultRegisters
-        in (getRegister8 hi registers, getRegister8 lo registers)
+        in (getRegister8 hi registers, getRegister8 lo registers) `shouldBe` (128, 128)
 
     spec :: Spec
     spec = describe "register" $ do
         it "Packs A and F into AF" $
-            specPack A F AF `shouldBe` 32832
+            specPack A F AF
         
         it "Packs B and C into BC" $
-            specPack B C BC `shouldBe` 32832
+            specPack B C BC
             
         it "Packs D and E into DE" $
-            specPack D E DE `shouldBe` 32832
+            specPack D E DE
 
         it "Packs H and L into HL" $
-            specPack H L HL `shouldBe` 32832
+            specPack H L HL
 
         it "Unpacks AF into A and F" $
-            specUnpack AF A F `shouldBe` (128, 128)
+            specUnpack AF A F
         
         it "Unpacks BC into B and C" $
-            specUnpack BC B C `shouldBe` (128, 128)
+            specUnpack BC B C
             
         it "Unpacks DE into D and E" $
-            specUnpack DE D E `shouldBe` (128, 128)
+            specUnpack DE D E
 
         it "Unpacks HL into H and L" $
-            specUnpack HL H L `shouldBe` (128, 128)
+            specUnpack HL H L
