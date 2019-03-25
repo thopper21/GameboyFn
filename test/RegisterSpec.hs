@@ -1,28 +1,15 @@
 module RegisterSpec where
 
-    import CPU
+    import Register
     import Data.Word (Word8, Word16)
     import Test.Hspec
 
-    defaultRegisters = Registers {
-        a = 0,
-        b = 0,
-        c = 0,
-        d = 0,
-        e = 0,
-        h = 0,
-        l = 0,
-        f = 0,
-        pc = 0,
-        sp = 0
-    }
-
     specPack hi lo out =
-        let val = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ defaultRegisters
+        let val = getRegister16 out . setRegister8 hi 128 . setRegister8 lo 64 $ emptyRegisters
         in val `shouldBe` (128 * 256 + 64)
 
     specUnpack input hi lo = 
-        let registers = setRegister16 input (128 * 256 + 128) defaultRegisters
+        let registers = setRegister16 input (128 * 256 + 128) emptyRegisters
         in (getRegister8 hi registers, getRegister8 lo registers) `shouldBe` (128, 128)
 
     spec :: Spec
