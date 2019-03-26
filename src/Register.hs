@@ -70,21 +70,23 @@ module Register (
         _sp = 0
     }
 
-    toLens8 A = a
-    toLens8 B = b
-    toLens8 C = c
-    toLens8 D = d
-    toLens8 E = e
-    toLens8 H = h
-    toLens8 L = l
-    toLens8 F = f
+    toLens8 register = case register of
+        A -> a
+        B -> b
+        C -> c
+        D -> d
+        E -> e
+        H -> h
+        L -> l
+        F -> f
 
-    toLens16 AF = af
-    toLens16 BC = bc
-    toLens16 DE = de
-    toLens16 HL = hl
-    toLens16 PC = pc
-    toLens16 SP = sp
+    toLens16 register = case register of
+        AF -> af
+        BC -> bc
+        DE -> de
+        HL -> hl
+        PC -> pc
+        SP -> sp
 
     getRegister8 :: Register8 -> Registers -> Word8
     getRegister8 = view . toLens8
