@@ -1,5 +1,16 @@
-module Register (Register8(..), Register16(..), Registers, emptyRegisters, getRegister8, getRegister16, setRegister8, setRegister16) where
+{-# LANGUAGE TemplateHaskell #-}
 
+module Register (
+    Register8(..),
+    Register16(..),
+    Registers,
+    emptyRegisters,
+    getRegister8,
+    getRegister16,
+    setRegister8,
+    setRegister16) where
+
+    import Control.Lens
     import Control.Monad
     import Data.Bits
     import Data.Word (Word8, Word16)
@@ -8,34 +19,19 @@ module Register (Register8(..), Register16(..), Registers, emptyRegisters, getRe
     data Register16 = AF | BC | DE | HL | PC | SP
 
     data Registers = Registers {
-        a :: Word8,
-        b :: Word8,
-        c :: Word8,
-        d :: Word8,
-        e :: Word8,
-        h :: Word8,
-        l :: Word8,
-        f :: Word8,
-        pc :: Word16,
-        sp :: Word16
+        _a :: Word8,
+        _b :: Word8,
+        _c :: Word8,
+        _d :: Word8,
+        _e :: Word8,
+        _h :: Word8,
+        _l :: Word8,
+        _f :: Word8,
+        _pc :: Word16,
+        _sp :: Word16
     } deriving (Show)
 
-    emptyRegisters = Registers {
-        a = 0,
-        b = 0,
-        c = 0,
-        d = 0,
-        e = 0,
-        h = 0,
-        l = 0,
-        f = 0,
-        pc = 0,
-        sp = 0
-    }
-
-    newtype Memory = IntMap Word8
-
-    data CPU = CPU { registers :: Registers, memory :: Memory }
+    makeLenses ''Registers
 
     pack :: Word8 -> Word8 -> Word16
     pack hi lo = fromIntegral hi * 256 + fromIntegral lo
@@ -43,75 +39,61 @@ module Register (Register8(..), Register16(..), Registers, emptyRegisters, getRe
     unpack :: Word16 -> (Word8, Word8)
     unpack val = (fromIntegral $ shiftR val 8, fromIntegral val)
 
-    toWord16 :: (Registers -> Word8) -> (Registers -> Word8) -> Registers -> Word16
-    toWord16 = liftM2 pack 
+    view16 lensHi lensLo = liftM2 pack (view lensHi) (view lensLo)
 
-    af :: Registers -> Word16
-    af = toWord16 a f
+    set16 lensHi lensLo registers val =
+        set lensHi hi . set lensLo lo $ registers
+        where (hi, lo) = unpack val
 
-    bc :: Registers -> Word16
-    bc = toWord16 b c
+    af :: Lens' Registers Word16
+    af = lens (view16 a f) (set16 a f)
 
-    de :: Registers -> Word16
-    de = toWord16 d e
+    bc :: Lens' Registers Word16
+    bc = lens (view16 b c) (set16 b c)
 
-    hl :: Registers -> Word16
-    hl = toWord16 h l
+    de :: Lens' Registers Word16
+    de = lens (view16 d e) (set16 d e)
+        
+    hl :: Lens' Registers Word16
+    hl = lens (view16 h l) (set16 h l)
 
-    setAF :: Registers -> Word16 -> Registers
-    setAF registers val = let (hi, lo) = unpack val
-        in registers { a = hi, f = lo }
+    emptyRegisters = Registers {
+        _a = 0,
+        _b = 0,
+        _c = 0,
+        _d = 0,
+        _e = 0,
+        _h = 0,
+        _l = 0,
+        _f = 0,
+        _pc = 0,
+        _sp = 0
+    }
 
-    setBC :: Registers -> Word16 -> Registers
-    setBC registers val = let (hi, lo) = unpack val
-        in registers { b = hi, c = lo }
+    toLens8 A = a
+    toLens8 B = b
+    toLens8 C = c
+    toLens8 D = d
+    toLens8 E = e
+    toLens8 H = h
+    toLens8 L = l
+    toLens8 F = f
 
-    setDE :: Registers -> Word16 -> Registers
-    setDE registers val = let (hi, lo) = unpack val
-        in registers { d = hi, e = lo }
-
-    setHL :: Registers -> Word16 -> Registers
-    setHL registers val = let (hi, lo) = unpack val
-        in registers { h = hi, l = lo }
-
-    setPC :: Registers -> Word16 -> Registers
-    setPC registers val = registers { pc = val }
-
-    setSP :: Registers -> Word16 -> Registers
-    setSP registers val = registers { sp = val }
+    toLens16 AF = af
+    toLens16 BC = bc
+    toLens16 DE = de
+    toLens16 HL = hl
+    toLens16 PC = pc
+    toLens16 SP = sp
 
     getRegister8 :: Register8 -> Registers -> Word8
-    getRegister8 A = a
-    getRegister8 B = b
-    getRegister8 C = c
-    getRegister8 D = d
-    getRegister8 E = e
-    getRegister8 H = h
-    getRegister8 L = l
-    getRegister8 F = f
+    getRegister8 = view . toLens8
 
     getRegister16 :: Register16 -> Registers -> Word16
-    getRegister16 AF = af
-    getRegister16 BC = bc
-    getRegister16 DE = de
-    getRegister16 HL = hl
-    getRegister16 PC = pc
-    getRegister16 SP = sp
+    getRegister16 = view . toLens16
 
     setRegister8 :: Register8 -> Word8 -> Registers -> Registers
-    setRegister8 A val registers = registers { a = val }
-    setRegister8 B val registers = registers { b = val }
-    setRegister8 C val registers = registers { c = val }
-    setRegister8 D val registers = registers { d = val }
-    setRegister8 E val registers = registers { e = val }
-    setRegister8 H val registers = registers { h = val }
-    setRegister8 L val registers = registers { l = val }
-    setRegister8 F val registers = registers { f = val }
+    setRegister8 = set . toLens8
 
     setRegister16 :: Register16 -> Word16 -> Registers -> Registers
-    setRegister16 AF = flip setAF
-    setRegister16 BC = flip setBC
-    setRegister16 DE = flip setDE
-    setRegister16 HL = flip setHL
-    setRegister16 PC = flip setPC
-    setRegister16 SP = flip setSP
+    setRegister16 = set . toLens16
