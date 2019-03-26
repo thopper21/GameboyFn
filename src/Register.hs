@@ -1,5 +1,6 @@
 module Register (Register8(..), Register16(..), Registers, emptyRegisters, getRegister8, getRegister16, setRegister8, setRegister16) where
 
+    import Control.Monad
     import Data.Bits
     import Data.Word (Word8, Word16)
 
@@ -40,10 +41,10 @@ module Register (Register8(..), Register16(..), Registers, emptyRegisters, getRe
     pack hi lo = fromIntegral hi * 256 + fromIntegral lo
 
     unpack :: Word16 -> (Word8, Word8)
-    unpack val = (fromIntegral (shiftR val 8), fromIntegral val)
+    unpack val = (fromIntegral $ shiftR val 8, fromIntegral val)
 
     toWord16 :: (Registers -> Word8) -> (Registers -> Word8) -> Registers -> Word16
-    toWord16 hi lo registers = pack (hi registers) (lo registers) 
+    toWord16 = liftM2 pack 
 
     af :: Registers -> Word16
     af = toWord16 a f
