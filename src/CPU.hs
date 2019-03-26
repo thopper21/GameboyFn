@@ -1,9 +1,13 @@
 module CPU where
 
-    import Register (Registers)
-    import Data.IntMap (IntMap)
-    import Data.Word (Word8)
+import           Data.IntMap (IntMap)
+import           Data.Word   (Word8)
+import           Register    (Registers)
 
-    newtype Memory = IntMap Word8
+newtype Memory =
+  IntMap Word8
 
-    data CPU = CPU { registers :: Registers, memory :: Memory }
+data CPU = CPU
+  { registers :: Registers
+  , memory    :: Memory
+  }
