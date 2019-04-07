@@ -1,20 +1,20 @@
 module Memory
   ( Memory
-  , empty
+  , emptyMemory
   , read8
   , read16
   , write8
   , write16
   ) where
 
-import qualified Data.IntMap as IM (IntMap, empty)
+import           Data.IntMap (IntMap, empty)
 import           Data.Word   (Word16, Word8)
 
 newtype Memory =
-  Memory (IM.IntMap Word8)
+  Memory (IntMap Word8)
 
-empty :: Memory
-empty = Memory IM.empty
+emptyMemory :: Memory
+emptyMemory = Memory empty
 
 read8 :: Memory -> Word16 -> Word8
 read8 _ _ = 0
