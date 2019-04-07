@@ -16,14 +16,14 @@ newtype Memory =
 empty :: Memory
 empty = Memory IM.empty
 
-read8 :: Memory -> Word8
-read8 _ = 0
+read8 :: Memory -> Word16 -> Word8
+read8 _ _ = 0
 
-read16 :: Memory -> Word16
-read16 _ = 0
+read16 :: Memory -> Word16 -> Word16
+read16 _ _ = 0
 
-write8 :: Memory -> Word8 -> Memory
-write8 memory _ = memory
+write8 :: Memory -> Word16 -> Word8 -> Memory
+write8 memory _ _ = memory
 
-write16 :: Memory -> Word16 -> Memory
-write16 memory _ = memory
+write16 :: Memory -> Word16 -> Word16 -> Memory
+write16 memory _ _ = memory
