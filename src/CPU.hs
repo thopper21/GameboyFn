@@ -1,4 +1,7 @@
-module CPU where
+module CPU
+  ( CPU
+  , emptyCPU
+  ) where
 
 import           Data.IntMap (IntMap)
 import           Data.Word   (Word8)
