@@ -4,11 +4,15 @@ module Register
   ( Register8(..)
   , Register16(..)
   , Registers
+  , Flag(..)
   , emptyRegisters
   , getRegister8
   , getRegister16
   , setRegister8
   , setRegister16
+  , setFlag
+  , clearFlag
+  , getFlag
   ) where
 
 import           Control.Lens
@@ -33,6 +37,12 @@ data Register16
   | HL
   | PC
   | SP
+
+data Flag
+  = Zero
+  | Carry
+  | AddSub
+  | HalfCarry
 
 data Registers = Registers
   { _a  :: Word8
@@ -118,3 +128,23 @@ setRegister8 = set . toLens8
 
 setRegister16 :: Register16 -> Word16 -> Registers -> Registers
 setRegister16 = set . toLens16
+
+getFlagBit :: Flag -> Int
+getFlagBit flag =
+  case flag of
+    Zero      -> 7
+    AddSub    -> 6
+    HalfCarry -> 5
+    Carry     -> 4
+
+updateFlag :: (Word8 -> Int -> Word8) -> Flag -> Registers -> Registers
+updateFlag update flag = over f (`update` getFlagBit flag)
+
+setFlag :: Flag -> Registers -> Registers
+setFlag = updateFlag setBit
+
+clearFlag :: Flag -> Registers -> Registers
+clearFlag = updateFlag clearBit
+
+getFlag :: Flag -> Registers -> Bool
+getFlag flag registers = testBit (view f registers) (getFlagBit flag)
