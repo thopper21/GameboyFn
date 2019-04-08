@@ -31,7 +31,7 @@ instruction cpu =
   let reg = registers cpu
       mem = memory cpu
       pc = getRegister16 PC reg
-      op = read16 mem pc
+      op = read8 mem pc
       reg' = setRegister16 PC (pc + 1) reg
       cpu' = cpu {registers = reg'}
    in getOperation op cpu'
