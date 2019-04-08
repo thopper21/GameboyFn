@@ -6,7 +6,7 @@ module CPU
 
 import           Data.IntMap (IntMap)
 import           Data.Word   (Word16, Word8)
-import           Memory      (Memory, emptyMemory, read16)
+import           Memory      (Memory, emptyMemory, read8)
 import           Register    (Register16 (..), Registers, emptyRegisters,
                               getRegister16, setRegister16)
 
@@ -21,7 +21,7 @@ emptyCPU = CPU {registers = emptyRegisters, memory = emptyMemory}
 nop :: CPU -> (CPU, Int)
 nop cpu = (cpu, 4)
 
-getOperation :: Word16 -> CPU -> (CPU, Int)
+getOperation :: Word8 -> CPU -> (CPU, Int)
 getOperation op =
   case op of
     0x00 -> nop
