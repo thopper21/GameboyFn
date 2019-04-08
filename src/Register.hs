@@ -15,6 +15,7 @@ module Register
   , getFlag
   ) where
 
+import           Bits
 import           Control.Lens
 import           Control.Monad
 import           Data.Bits
@@ -58,12 +59,6 @@ data Registers = Registers
   } deriving (Show)
 
 makeLenses ''Registers
-
-pack :: Word8 -> Word8 -> Word16
-pack hi lo = fromIntegral hi * 256 + fromIntegral lo
-
-unpack :: Word16 -> (Word8, Word8)
-unpack val = (fromIntegral $ shiftR val 8, fromIntegral val)
 
 view16 lensHi lensLo = liftM2 pack (view lensHi) (view lensLo)
 
