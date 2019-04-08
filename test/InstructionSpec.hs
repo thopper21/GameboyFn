@@ -1,13 +1,14 @@
-module CPUSpec where
+module InstructionSpec where
 
 import           CPU
+import           Instruction
 import           Memory
 import           Register
 import           Test.Hspec
 
 spec :: Spec
 spec = do
-  describe "operation" $
+  describe "Instruction" $
     describe "NOP" $ do
       it "costs 4 cycles" $
         let (cpu', time) = instruction emptyCPU
