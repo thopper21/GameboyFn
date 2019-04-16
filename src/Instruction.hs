@@ -10,12 +10,12 @@ import           Register  (Register16 (..), getRegister16, setRegister16)
 nop :: CPU -> (CPU, Int)
 nop cpu = (cpu, 0)
 
-readImmediate :: (Memory -> Word16 -> a) -> Int -> CPU -> (CPU, a, Int)
+readImmediate :: (Word16 -> Memory -> a) -> Int -> CPU -> (CPU, a, Int)
 readImmediate read width cpu =
   let reg = registers cpu
       mem = memory cpu
       pc = getRegister16 PC reg
-      value = read mem pc
+      value = read pc mem
       reg' = setRegister16 PC (pc + fromIntegral width) reg
       cpu' = cpu {registers = reg'}
    in (cpu', value, 4 * width)

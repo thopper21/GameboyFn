@@ -8,8 +8,9 @@ module Memory
   ) where
 
 import           Bits
+import           Control.Monad.State
 import           Data.IntMap
-import           Data.Word   (Word16, Word8)
+import           Data.Word           (Word16, Word8)
 
 newtype Memory =
   Memory (IntMap Word8)
@@ -17,21 +18,20 @@ newtype Memory =
 emptyMemory :: Memory
 emptyMemory = Memory empty
 
-read8 :: Memory -> Word16 -> Word8
-read8 (Memory map) address = findWithDefault 0 (fromIntegral address) map
+read8 :: Word16 -> Memory -> Word8
+read8 address (Memory map) = findWithDefault 0 (fromIntegral address) map
 
-read16 :: Memory -> Word16 -> Word16
-read16 memory address =
-  let hi = read8 memory address
-      lo = read8 memory $ address + 1
+read16 :: Word16 -> Memory -> Word16
+read16 address memory =
+  let hi = read8 address memory
+      lo = read8 (address + 1) memory
    in pack hi lo
 
-write8 :: Memory -> Word16 -> Word8 -> Memory
-write8 (Memory map) address value =
+write8 :: Word16 -> Word8 -> Memory -> Memory
+write8 address value (Memory map) =
   Memory $ insert (fromIntegral address) value map
 
-write16 :: Memory -> Word16 -> Word16 -> Memory
-write16 memory address value =
+write16 :: Word16 -> Word16 -> Memory -> Memory
+write16 address value =
   let (hi, lo) = unpack value
-      memory' = write8 memory address hi
-   in write8 memory' (address + 1) lo
+   in write8 address hi . write8 (address + 1) lo
