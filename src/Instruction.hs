@@ -11,10 +11,8 @@ nop :: CPU -> (CPU, Int)
 nop cpu = (cpu, 0)
 
 readImmediate :: (Word16 -> Memory -> a) -> Int -> CPU -> (CPU, a, Int)
-readImmediate read width cpu =
-  let reg = registers cpu
-      mem = memory cpu
-      pc = getRegister16 PC reg
+readImmediate read width cpu@CPU {registers = reg, memory = mem} =
+  let pc = getRegister16 PC reg
       value = read pc mem
       reg' = setRegister16 PC (pc + fromIntegral width) reg
       cpu' = cpu {registers = reg'}
