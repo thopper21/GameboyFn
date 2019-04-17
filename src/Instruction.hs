@@ -45,7 +45,7 @@ ld write read cpu =
 getOperation :: Word8 -> CPU -> CPU
 getOperation op cpu =
   case op of
-    0x00 -> cpu
+    0x00 -> nop cpu
     0x01 ->
       let (cpu', value) = readImmediate16 cpu
        in ld (writeReg16 BC) (const value) cpu'
