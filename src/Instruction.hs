@@ -2,63 +2,74 @@ module Instruction
   ( instruction
   ) where
 
-import           CPU       (CPU (..))
-import           Data.Word (Word16, Word8)
-import           Memory    (Memory, read16, read8, write8)
-import           Register  (Register16 (..), Register8 (..), getRegister16,
-                            getRegister8, setRegister16)
+import           Control.Monad.State.Lazy
+import           CPU                      (CPU (..))
+import           Data.Word                (Word16, Word8)
+import           Memory                   (Memory, read16, read8, write8)
+import           Register                 (Register16 (..), Register8 (..),
+                                           getRegister16, getRegister8,
+                                           setRegister16)
 
-nop :: CPU -> CPU
-nop = id
+nop :: State CPU ()
+nop = modify id
 
-addTime :: Int -> CPU -> CPU
-addTime t cpu = cpu {time = (+ t) . time $ cpu}
+addTime :: Int -> State CPU ()
+addTime t = modify $ \cpu -> cpu {time = (+ t) . time $ cpu}
 
-readRegister16 :: Register16 -> CPU -> Word16
-readRegister16 register = getRegister16 register . registers
+readRegister16 :: Register16 -> State CPU Word16
+readRegister16 register = gets $ getRegister16 register . registers
 
-writeRegister16 :: Register16 -> Word16 -> CPU -> CPU
-writeRegister16 register value cpu =
-  cpu {registers = setRegister16 register value . registers $ cpu}
+writeRegister16 :: Register16 -> Word16 -> State CPU ()
+writeRegister16 register value =
+  modify $ \cpu ->
+    cpu {registers = setRegister16 register value . registers $ cpu}
 
-readImmediate :: (Word16 -> Memory -> a) -> Int -> CPU -> (CPU, a)
-readImmediate read width cpu =
-  let pc = readRegister16 PC cpu
-      value = read pc $ memory cpu
-      cpu' = writeRegister16 PC (pc + fromIntegral width) cpu
-      cpu'' = addTime (4 * width) cpu'
-   in (cpu'', value)
+readMemory8 :: Word16 -> State CPU Word8
+readMemory8 address = gets $ read8 address . memory
 
-readImmediate8 :: CPU -> (CPU, Word8)
-readImmediate8 = readImmediate read8 1
+readMemory16 :: Word16 -> State CPU Word16
+readMemory16 address = gets $ read16 address . memory
 
-readImmediate16 :: CPU -> (CPU, Word16)
-readImmediate16 = readImmediate read16 2
+writeMemory8 :: Word16 -> Word8 -> State CPU ()
+writeMemory8 address value =
+  modify $ \cpu -> cpu {memory = write8 address value . memory $ cpu}
 
-readRegister8 :: Register8 -> CPU -> Word8
-readRegister8 register = getRegister8 register . registers
+readImmediate :: (Word16 -> State CPU a) -> Int -> State CPU a
+readImmediate read width = do
+  pc <- readRegister16 PC
+  value <- read pc
+  writeRegister16 PC (pc + fromIntegral width)
+  addTime (4 * width)
+  return value
 
-writeAddress8 :: Word16 -> Word8 -> CPU -> CPU
-writeAddress8 address value cpu =
-  let memory' = write8 address value . memory $ cpu
-      cpu' = addTime 4 cpu
-   in cpu' {memory = memory'}
+readImmediate8 :: State CPU Word8
+readImmediate8 = readImmediate readMemory8 1
 
-ld :: (a -> CPU -> CPU) -> (CPU -> a) -> CPU -> CPU
-ld write read cpu = write (read cpu) cpu
+readImmediate16 :: State CPU Word16
+readImmediate16 = readImmediate readMemory16 2
 
-getOperation :: Word8 -> CPU -> CPU
-getOperation op cpu =
+readRegister8 :: Register8 -> State CPU Word8
+readRegister8 register = gets $ getRegister8 register . registers
+
+writeAddress8 :: Word16 -> Word8 -> State CPU ()
+writeAddress8 address value = do
+  writeMemory8 address value
+  addTime 4
+
+ld :: (a -> State CPU ()) -> State CPU a -> State CPU ()
+ld write read = read >>= write
+
+getOperation :: Word8 -> State CPU ()
+getOperation op =
   case op of
-    0x00 -> nop cpu
-    0x01 ->
-      let (cpu', value) = readImmediate16 cpu
-       in ld (writeRegister16 BC) (const value) cpu'
-    0x02 ->
-      let address = getRegister16 BC . registers $ cpu
-       in ld (writeAddress8 address) (readRegister8 A) cpu
+    0x00 -> nop
+    0x01 -> ld (writeRegister16 BC) readImmediate16
+    0x02 -> do
+      address <- readRegister16 BC
+      ld (writeAddress8 address) (readRegister8 A)
 
 instruction :: CPU -> CPU
-instruction cpu =
-  let (cpu', op) = readImmediate8 cpu
-   in getOperation op cpu'
+instruction =
+  execState $ do
+    op <- readImmediate8
+    getOperation op
