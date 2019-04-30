@@ -67,6 +67,10 @@ getOperation op =
     0x02 -> do
       address <- readRegister16 BC
       ld (writeAddress8 address) (readRegister8 A)
+    0x03 -> do
+      value <- readRegister16 BC
+      writeRegister16 BC (value + 1)
+      addTime 4
 
 instruction :: CPU -> CPU
 instruction =

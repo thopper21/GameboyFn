@@ -6,12 +6,14 @@ import           Memory
 import           Register
 import           Test.Hspec
 
+toCPU :: Memory -> Registers -> CPU
+toCPU memory registers = CPU {memory = memory, registers = registers, time = 0}
+
 fromMemory :: Memory -> CPU
-fromMemory memory = CPU {memory = memory, registers = emptyRegisters, time = 0}
+fromMemory memory = toCPU memory emptyRegisters
 
 fromRegisters :: Registers -> CPU
-fromRegisters registers =
-  CPU {memory = emptyMemory, registers = registers, time = 0}
+fromRegisters = toCPU emptyMemory
 
 incrementsPC op amount =
   it ("Increments PC by " ++ show amount) $
@@ -52,6 +54,16 @@ spec =
         it "Writes A to (BC)" $
           let reg = setRegister8 A 42 . setRegister16 BC 123 $ emptyRegisters
               mem = write8 0 0x02 emptyMemory
-              cpu = instruction $ CPU {memory = mem, registers = reg, time = 0}
+              cpu = instruction $ toCPU mem reg
               value = read8 123 . memory $ cpu
            in value `shouldBe` 42
+    describe "INC" $
+      describe "BC (0x03)" $ do
+        0x03 `incrementsPC` 1
+        0x03 `costsCycles` 8
+        it "Increments BC" $
+          let reg = setRegister16 BC 42 emptyRegisters
+              mem = write8 0 0x03 emptyMemory
+              cpu = instruction $ toCPU mem reg
+              value = getRegister16 BC . registers $ cpu
+           in value `shouldBe` 43
