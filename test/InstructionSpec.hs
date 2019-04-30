@@ -76,7 +76,7 @@ spec =
         it "Increments B" $
           let cpu = run 42
               value = getRegister8 B . registers $ cpu
-          in value `shouldBe` 43
+           in value `shouldBe` 43
         it "Sets zero flag when overflow" $
           let cpu = run 255
               value = getFlag Zero . registers $ cpu
@@ -84,16 +84,16 @@ spec =
         it "Clears zero flag when no overflow" $
           let cpu = run 42
               value = getFlag Zero . registers $ cpu
-          in value `shouldBe` False
+           in value `shouldBe` False
         it "Clears add/sub flag" $
           let cpu = run 42
               value = getFlag AddSub . registers $ cpu
-          in value `shouldBe` False
+           in value `shouldBe` False
         it "Sets half carry flag when overflow" $
           let cpu = run 15
               value = getFlag HalfCarry . registers $ cpu
-            in value `shouldBe` True
+           in value `shouldBe` True
         it "Clears half carry flag when no overflow" $
           let cpu = run 42
               value = getFlag HalfCarry . registers $ cpu
-          in value `shouldBe` False
+           in value `shouldBe` False
