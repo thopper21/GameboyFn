@@ -78,6 +78,18 @@ inc16 register = do
   writeRegister16 register (value + 1)
   addTime 4
 
+inc8 :: Register8 -> State CPU ()
+inc8 register = do
+  value <- readRegister8 register
+  writeRegister8 register (value + 1)
+  clearF AddSub
+  if value == 255
+    then setF Zero
+    else clearF Zero
+  if value == 15
+    then setF HalfCarry
+    else clearF HalfCarry
+
 getOperation :: Word8 -> State CPU ()
 getOperation op =
   case op of
@@ -87,16 +99,7 @@ getOperation op =
       address <- readRegister16 BC
       ld (writeAddress8 address) (readRegister8 A)
     0x03 -> inc16 BC
-    0x04 -> do
-      value <- readRegister8 B
-      writeRegister8 B (value + 1)
-      clearF AddSub
-      if value == 255
-        then setF Zero
-        else clearF Zero
-      if value == 15
-        then setF HalfCarry
-        else clearF HalfCarry
+    0x04 -> inc8 B
 
 instruction :: CPU -> CPU
 instruction =
