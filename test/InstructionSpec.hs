@@ -57,7 +57,7 @@ spec =
               cpu = instruction $ toCPU mem reg
               value = read8 123 . memory $ cpu
            in value `shouldBe` 42
-    describe "INC" $
+    describe "INC" $ do
       describe "BC (0x03)" $ do
         0x03 `incrementsPC` 1
         0x03 `costsCycles` 8
@@ -67,3 +67,33 @@ spec =
               cpu = instruction $ toCPU mem reg
               value = getRegister16 BC . registers $ cpu
            in value `shouldBe` 43
+      describe "B (0x04)" $ do
+        0x04 `incrementsPC` 1
+        0x04 `costsCycles` 4
+        let mem = write8 0 0x04 emptyMemory
+        let setReg value = setRegister8 B value emptyRegisters
+        let run value = instruction $ toCPU mem (setReg value)
+        it "Increments B" $
+          let cpu = run 42
+              value = getRegister8 B . registers $ cpu
+          in value `shouldBe` 43
+        it "Sets zero flag when overflow" $
+          let cpu = run 255
+              value = getFlag Zero . registers $ cpu
+           in value `shouldBe` True
+        it "Clears zero flag when no overflow" $
+          let cpu = run 42
+              value = getFlag Zero . registers $ cpu
+          in value `shouldBe` False
+        it "Clears add/sub flag" $
+          let cpu = run 42
+              value = getFlag AddSub . registers $ cpu
+          in value `shouldBe` False
+        it "Sets half carry flag when overflow" $
+          let cpu = run 15
+              value = getFlag HalfCarry . registers $ cpu
+            in value `shouldBe` True
+        it "Clears half carry flag when no overflow" $
+          let cpu = run 42
+              value = getFlag HalfCarry . registers $ cpu
+          in value `shouldBe` False

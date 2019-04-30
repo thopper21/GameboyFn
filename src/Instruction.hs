@@ -6,9 +6,10 @@ import           Control.Monad.State.Lazy
 import           CPU                      (CPU (..))
 import           Data.Word                (Word16, Word8)
 import           Memory                   (Memory, read16, read8, write8)
-import           Register                 (Register16 (..), Register8 (..),
+import           Register                 (Flag(..), Register16 (..), Register8 (..),
                                            getRegister16, getRegister8,
-                                           setRegister16)
+                                           setRegister16, setRegister8,
+                                           setFlag, clearFlag)
 
 nop :: State CPU ()
 nop = modify id
@@ -23,6 +24,22 @@ writeRegister16 :: Register16 -> Word16 -> State CPU ()
 writeRegister16 register value =
   modify $ \cpu ->
     cpu {registers = setRegister16 register value . registers $ cpu}
+
+readRegister8 :: Register8 -> State CPU Word8
+readRegister8 register = gets $ getRegister8 register . registers
+
+writeRegister8 :: Register8 -> Word8 -> State CPU ()
+writeRegister8 register value =
+  modify $ \cpu ->
+    cpu {registers = setRegister8 register value . registers $ cpu}
+
+setF :: Flag -> State CPU ()
+setF flag =
+  modify $ \cpu -> cpu { registers = setFlag flag . registers $ cpu }
+  
+clearF :: Flag -> State CPU ()
+clearF flag =
+  modify $ \cpu -> cpu { registers = clearFlag flag . registers $ cpu }
 
 readMemory8 :: Word16 -> State CPU Word8
 readMemory8 address = gets $ read8 address . memory
@@ -48,9 +65,6 @@ readImmediate8 = readImmediate readMemory8 1
 readImmediate16 :: State CPU Word16
 readImmediate16 = readImmediate readMemory16 2
 
-readRegister8 :: Register8 -> State CPU Word8
-readRegister8 register = gets $ getRegister8 register . registers
-
 writeAddress8 :: Word16 -> Word8 -> State CPU ()
 writeAddress8 address value = do
   writeMemory8 address value
@@ -71,6 +85,12 @@ getOperation op =
       value <- readRegister16 BC
       writeRegister16 BC (value + 1)
       addTime 4
+    0x04 -> do
+      value <- readRegister8 B
+      writeRegister8 B (value + 1)
+      clearF AddSub
+      if value == 255 then setF Zero else clearF Zero
+      if value == 15 then setF HalfCarry else clearF HalfCarry
 
 instruction :: CPU -> CPU
 instruction =
