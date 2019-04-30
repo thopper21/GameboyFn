@@ -83,12 +83,14 @@ inc8 register = do
   value <- readRegister8 register
   writeRegister8 register (value + 1)
   clearF AddSub
-  if value == 255
-    then setF Zero
-    else clearF Zero
-  if value == 15
-    then setF HalfCarry
-    else clearF HalfCarry
+  updateFlag (value == 255) Zero
+  updateFlag (value == 15) HalfCarry
+
+updateFlag :: Bool -> Flag -> State CPU ()
+updateFlag b =
+  if b
+    then setF
+    else clearF
 
 getOperation :: Word8 -> State CPU ()
 getOperation op =
